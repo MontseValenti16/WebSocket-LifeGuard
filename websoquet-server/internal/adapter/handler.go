@@ -46,6 +46,7 @@ func (h *Handler) ServeWS(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleMessages procesa los mensajes recibidos del cliente.
+// handleMessages procesa los mensajes recibidos del cliente.
 func (h *Handler) handleMessages(accountID string, client *Client) {
 	defer func() {
 		h.Service.RemoveClient(accountID)
@@ -63,7 +64,26 @@ func (h *Handler) handleMessages(accountID string, client *Client) {
 		}
 
 		// Aquí mostramos tanto los campos fijos como los adicionales.
-		log.Printf("Mensaje recibido de %s para %s: content: '%s' data: %+v\n", message.Sender, message.Receiver, message.Content, message.Data)
+		log.Printf("Mensaje recibido de %s para %s con datos adicionales: %+v\n", message.Sender, message.Receiver, message.Data)
+
+		// Extraer valores individuales de message.Data
+		if dataMap, ok := message.Data["content"].(map[string]interface{}); ok {
+			accion, _ := dataMap["accion"].(string)
+			fecha, _ := dataMap["fecha"].(string)
+			idPersona, _ := dataMap["id_persona"].(string)
+			macAddress, _ := dataMap["macaddress"].(string)
+			mensaje, _ := dataMap["mensaje"].(string)
+			nivelPeligro, _ := dataMap["nivel_peligro"].(string)
+
+			log.Println("Acción:", accion)
+			log.Println("Fecha:", fecha)
+			log.Println("ID Persona:", idPersona)
+			log.Println("MAC Address:", macAddress)
+			log.Println("Mensaje:", mensaje)
+			log.Println("Nivel de Peligro:", nivelPeligro)
+		} else {
+			log.Println("No se encontró 'content' en los datos adicionales.")
+		}
 
 		msgToSend, err := json.Marshal(message)
 		if err != nil {
@@ -73,3 +93,7 @@ func (h *Handler) handleMessages(accountID string, client *Client) {
 		h.Service.SendMessageToAccount(message.Receiver, msgToSend)
 	}
 }
+
+
+	
+
