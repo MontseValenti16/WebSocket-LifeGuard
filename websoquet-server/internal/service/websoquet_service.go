@@ -8,13 +8,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// WebsoquetService gestiona las conexiones de clientes identificados por accountID.
+
 type WebsoquetService struct {
 	Clients map[string]domain.Client
 	mu      sync.Mutex
 }
 
-// NewWebsoquetService crea una nueva instancia del servicio.
+
 func NewWebsoquetService() *WebsoquetService {
 	return &WebsoquetService{
 		Clients: make(map[string]domain.Client),

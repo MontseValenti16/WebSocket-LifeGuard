@@ -61,7 +61,9 @@ func (h *Handler) handleMessages(accountID string, client *Client) {
 			log.Println("Error decodificando JSON:", err)
 			continue
 		}
-		log.Printf("Mensaje de %s para %s: %s\n", message.Sender, message.Receiver, message.Content)
+
+		// Aquí mostramos tanto los campos fijos como los adicionales.
+		log.Printf("Mensaje recibido de %s para %s: content: '%s' data: %+v\n", message.Sender, message.Receiver, message.Content, message.Data)
 
 		msgToSend, err := json.Marshal(message)
 		if err != nil {
