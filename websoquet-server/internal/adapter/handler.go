@@ -46,10 +46,9 @@ func (h *Handler) ServeWS(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleMessages procesa los mensajes recibidos del cliente.
-// handleMessages procesa los mensajes recibidos del cliente.
 func (h *Handler) handleMessages(accountID string, client *Client) {
 	defer func() {
-		h.Service.RemoveClient(accountID, client) // 🔥 Se pasa el cliente correcto
+		h.Service.RemoveClient(accountID, client)
 	}()
 	for {
 		_, msg, err := client.ReadMessage()
@@ -63,28 +62,33 @@ func (h *Handler) handleMessages(accountID string, client *Client) {
 			continue
 		}
 
-		// Aquí mostramos tanto los campos fijos como los adicionales.
-		log.Printf("Mensaje recibido de %s para %s con datos adicionales: %+v\n", message.Sender, message.Receiver, message.Data)
-
-		// Extraer valores individuales de message.Data
-		if dataMap, ok := message.Data["content"].(map[string]interface{}); ok {
-			accion, _ := dataMap["accion"].(string)
-			fecha, _ := dataMap["fecha"].(string)
-			idPersona, _ := dataMap["id_persona"].(string)
-			macAddress, _ := dataMap["macaddress"].(string)
-			mensaje, _ := dataMap["mensaje"].(string)
-			nivelPeligro, _ := dataMap["nivel_peligro"].(string)
-
-			log.Println("Acción:", accion)
-			log.Println("Fecha:", fecha)
-			log.Println("ID Persona:", idPersona)
-			log.Println("MAC Address:", macAddress)
-			log.Println("Mensaje:", mensaje)
-			log.Println("Nivel de Peligro:", nivelPeligro)
+		log.Printf("Mensaje recibido de %s para %s\n", message.Sender, message.Receiver)
+		// Primero se revisa si Content fue asignado (en caso de enviarlo como string)
+		if message.Content != "" {
+			log.Println("Content:", message.Content)
 		} else {
-			log.Println("No se encontró 'content' en los datos adicionales.")
+			// Si no se asignó Content, se intenta extraer "content" desde Data.
+			if dataMap, ok := message.Data["content"].(map[string]interface{}); ok {
+				accion, _ := dataMap["accion"].(string)
+				fecha, _ := dataMap["fecha"].(string)
+				// id_persona puede ser numérico o string, se captura como interface{}
+				idPersona := dataMap["id_persona"]
+				macAddress, _ := dataMap["macaddress"].(string)
+				mensajeText, _ := dataMap["mensaje"].(string)
+				nivelPeligro, _ := dataMap["nivel_peligro"].(string)
+
+				log.Println("Acción:", accion)
+				log.Println("Fecha:", fecha)
+				log.Println("ID Persona:", idPersona)
+				log.Println("MAC Address:", macAddress)
+				log.Println("Mensaje:", mensajeText)
+				log.Println("Nivel de Peligro:", nivelPeligro)
+			} else {
+				log.Println("No se encontró 'content' en el mensaje.")
+			}
 		}
 
+		// Vuelve a serializar el mensaje para enviarlo.
 		msgToSend, err := json.Marshal(message)
 		if err != nil {
 			log.Println("Error codificando JSON:", err)
@@ -93,8 +97,3 @@ func (h *Handler) handleMessages(accountID string, client *Client) {
 		h.Service.SendMessageToAccount(message.Receiver, msgToSend)
 	}
 }
-
-
-
-	
-
