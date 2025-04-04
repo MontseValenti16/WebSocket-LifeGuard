@@ -49,7 +49,7 @@ func (h *Handler) ServeWS(w http.ResponseWriter, r *http.Request) {
 // handleMessages procesa los mensajes recibidos del cliente.
 func (h *Handler) handleMessages(accountID string, client *Client) {
 	defer func() {
-		h.Service.RemoveClient(accountID)
+		h.Service.RemoveClient(accountID, client) // 🔥 Se pasa el cliente correcto
 	}()
 	for {
 		_, msg, err := client.ReadMessage()
@@ -93,6 +93,7 @@ func (h *Handler) handleMessages(accountID string, client *Client) {
 		h.Service.SendMessageToAccount(message.Receiver, msgToSend)
 	}
 }
+
 
 
 	
