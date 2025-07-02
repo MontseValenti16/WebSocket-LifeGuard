@@ -48,7 +48,7 @@ func (h *Handler) ServeWS(w http.ResponseWriter, r *http.Request) {
 // handleMessages procesa los mensajes recibidos del cliente.
 func (h *Handler) handleMessages(accountID string, client *Client) {
 	defer func() {
-		h.Service.RemoveClient(accountID)
+		h.Service.RemoveClient(accountID, client)
 	}()
 	for {
 		_, msg, err := client.ReadMessage()
@@ -61,8 +61,12 @@ func (h *Handler) handleMessages(accountID string, client *Client) {
 			log.Println("Error decodificando JSON:", err)
 			continue
 		}
-		log.Printf("Mensaje de %s para %s: %s\n", message.Sender, message.Receiver, message.Content)
 
+		log.Printf("Mensaje recibido de %s para %s\n", message.Sender, message.Receiver)
+
+		// Acceder a los campos individuales en message.Content
+		
+		// Vuelve a serializar el mensaje para enviarlo.
 		msgToSend, err := json.Marshal(message)
 		if err != nil {
 			log.Println("Error codificando JSON:", err)
