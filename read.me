@@ -1,1 +1,114 @@
-prueba nueva 2
+# 📡 WebSocket-LifeGuard
+
+Este servidor está escrito en **Go** y permite una comunicación en tiempo real entre una API (emisor) y uno o más clientes Frontend (receptores) utilizando WebSockets. Cada cliente se identifica por su dirección MAC, permitiendo múltiples conexiones simultáneas por la misma cuenta (MAC address).
+
+---
+
+## 🧱 Estructura del proyecto
+WS/websoquet-server/
+├── cmd/
+│ └── main.go # Punto de entrada
+├── internal/
+│ ├── adapter/
+│ │ ├── client.go # Representa un cliente WebSocket
+│ │ └── handler.go # Controlador WebSocket
+│ ├── app/
+│ │ └── server.go # Configura el servidor
+│ ├── domain/
+│ │ └── message.go # Modelo del mensaje
+│ └── service/
+│ └── websoquet_service.go # Servicio para manejar conexiones
+
+
+---
+
+## 🚀 Cómo iniciar el servidor
+
+Ejecuta el servidor con:
+
+```bash
+go run ./cmd/main.go
+
+ws://localhost:8080/ws?account=<Canal>
+
+Ejemplo
+ws://localhost:8080/ws?account=00:11:22:33:44:55
+
+Formato De los Mensajes 
+{
+  "sender": "00:11:22:33:44:55",
+  "receiver": "00:11:22:33:44:55",
+  "content": {
+    "macaddress": "31485",
+    "mensaje": "ya jalo",
+    "accion": "ya funciona",
+    "nivel_peligro": "bajo",
+    "fecha": "2025-02-02",
+    "id_persona": 11
+  }
+}
+✅ Puedes enviar cualquier tipo de datos dentro del campo content. El servidor los procesará y reenviará tal cual a todos los clientes asociados al receiver.
+
+🔁 Flujo de comunicación
+API o Front se conecta mediante WebSocket a /ws?account=<mac>.
+
+Envía un JSON con sender, receiver y content.
+
+El servidor reenvía ese mensaje solo a los clientes registrados bajo el receiver especificado.
+
+Cualquier cliente con la misma dirección MAC recibe el mensaje.
+
+👥 Soporte para múltiples clientes
+Cada dirección MAC (accountID) puede tener varios clientes conectados simultáneamente. Por ejemplo:
+
+Cliente A (frontend)
+
+Cliente B (API backend)
+
+Ambos conectados a: ?account=00:11:22:33:44:55.
+
+Cualquier mensaje enviado por uno será recibido por los otros conectados con el mismo account.
+
+📂 Detalle de cada archivo
+main.go
+Inicializa y arranca el servidor.
+
+server.go
+Registra la ruta /ws y lanza el Handler.
+
+handler.go
+Convierte conexiones HTTP a WebSocket, registra al cliente y reenvía mensajes entrantes.
+
+client.go
+Implementa lectura y escritura de mensajes WebSocket.
+
+message.go
+Modelo de datos flexible que acepta cualquier tipo de contenido en content.
+
+websoquet_service.go
+Soporta múltiples clientes por cuenta/MAC.
+
+Reenvía mensajes a todos los registrados bajo el mismo receiver.
+
+Remueve clientes desconectados de forma segura.
+
+🧪 Prueba con wscat
+npm install -g wscat
+
+wscat -c ws://localhost:8080/ws?account=123
+Ejemplo de mensaje:
+
+json
+{"sender":"123","receiver":"123","content":{"mensaje":"Hola desde backend"}}
+
+✅ Ventajas del diseño
+Comunicación en tiempo real 1:N (uno a varios).
+
+Múltiples clientes por cuenta.
+
+Independencia de contenido (content flexible).
+
+Separación clara entre capas (adaptador, dominio, servicio, etc.).
+
+
+
